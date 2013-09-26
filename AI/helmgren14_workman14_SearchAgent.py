@@ -70,7 +70,7 @@ class AIPlayer(Player):
     #   inputPlayerId - The id to give the new player (int)
     ##
     def __init__(self, inputPlayerId):
-        super(AIPlayer,self).__init__(inputPlayerId, "The Hufflepuff")
+        super(AIPlayer,self).__init__(inputPlayerId, "The Hard Easy")
         self.foodSwitch = False
         self.chosenFoodCoords = None
 
@@ -135,7 +135,7 @@ class AIPlayer(Player):
     ##
     def exploreTree(self, currentState, PID = 0, depth = 0, depthLimit = 1, parentNode = None):
         enoughIsEnough = 1
-        bestSeen = (parentNode, parentNode.evaluation)
+        bestSeen = parentNode
         #base Case
         if depth == depthLimit:
             #look at all the pretty nodes on this level
@@ -145,8 +145,8 @@ class AIPlayer(Player):
                 qualOfState = self.stateQuality(newState)
                 if qualOfState > parentNode.evaluation and qualOfState > bestSeen.evaluation:
                     bestSeen = StateNode(move, newState, qualOfState, parentNode)
-
-            return bestSeen, bestSeen.evaluation
+            bestTuple = (bestSeen, bestSeen.evaluation)
+            return bestTuple
         #recursive Case
         else:
             depth += 1
@@ -155,10 +155,12 @@ class AIPlayer(Player):
                 newState = self.simulateMove(move, currentState.fastclone())
                 qualOfState = self.stateQuality(newState)
                 if qualOfState > parentNode.evaluation and qualOfState > bestSeen.evaluation:
-                    successorNode = self.exploreTree(bestSeen.currentState, self.playerId, depth, depthLimit, bestSeen)
+                    bestSuccessor = self.exploreTree(bestSeen.currentState, self.playerId, depth, depthLimit, bestSeen)
+                    if bestSuccessor[1] > bestSeen.evaluation:
+                        bestSeen = bestSuccessor[0]
 
-
-            return bestSeen,bestSeen.evaluation
+            bestTuple = bestSeen, bestSeen.evaluation
+            return bestTuple
 
 
     ##
@@ -175,8 +177,8 @@ class AIPlayer(Player):
         qualOfState = 0
         parentNode = None
         node = StateNode(move, currentState, qualOfState, parentNode)
-        bestNode = self.exploreTree(currentState, self.playerId, 0, 2, node)
-        return bestNode.arrivalMove
+        resultantTuple = self.exploreTree(currentState, self.playerId, 0, 2, node)
+        return resultantTuple[0].arrivalMove
 
 
     ##
